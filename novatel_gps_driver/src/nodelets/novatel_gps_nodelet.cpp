@@ -1032,6 +1032,7 @@ namespace novatel_gps_driver
         }
       }
 
+      gps_.GetGPSFixMessages(fix_msgs);
       for (const auto& msg : fix_msgs)
       {
         msg->header.stamp += sync_offset;

@@ -279,6 +279,12 @@ namespace novatel_gps_driver
        * @param[out] clocksteering_msgs New CLOCKSTEERING messages.
        */
       void GetClockSteeringMessages(std::vector<novatel_gps_msgs::ClockSteeringPtr>& clocksteering_msgs);
+      /**
+       * @brief Provides any GPSFix messages that have been received since the
+       * last time this was called.
+       * @param[out] gpsfix_messages New GPSFix messages.
+       */
+      void GetGPSFixMessages(std::vector<gps_common::GPSFixPtr>& gpsfix_messages);
 
       /**
        * @return true if we are connected to a NovAtel device, false otherwise.
@@ -527,6 +533,7 @@ namespace novatel_gps_driver
       boost::circular_buffer<novatel_gps_msgs::RangePtr> range_msgs_;
       boost::circular_buffer<novatel_gps_msgs::TimePtr> time_msgs_;
       boost::circular_buffer<novatel_gps_msgs::TrackstatPtr> trackstat_msgs_;
+      boost::circular_buffer<gps_common::GPSFixPtr> fix_msgs_;
 
       novatel_gps_msgs::NovatelPsrdop2Ptr latest_psrdop2_;
 

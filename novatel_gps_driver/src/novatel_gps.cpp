@@ -76,6 +76,7 @@ namespace novatel_gps_driver
       range_msgs_(MAX_BUFFER_SIZE),
       time_msgs_(MAX_BUFFER_SIZE),
       trackstat_msgs_(MAX_BUFFER_SIZE),
+      fix_msgs_(MAX_BUFFER_SIZE),
       imu_rate_(-1.0),
       apply_vehicle_body_rotation_(false)
   {
@@ -551,6 +552,13 @@ namespace novatel_gps_driver
     clocksteering_msgs.resize(clocksteering_msgs_.size());
     std::copy(clocksteering_msgs_.begin(), clocksteering_msgs_.end(), clocksteering_msgs.begin());
     clocksteering_msgs_.clear();
+  }
+
+  void NovatelGps::GetGPSFixMessages(std::vector<gps_common::GPSFixPtr>& gpsfix_messages)
+  {
+    gpsfix_messages.clear();
+    gpsfix_messages.insert(gpsfix_messages.end(), fix_msgs_.begin(), fix_msgs_.end());
+    fix_msgs_.clear();
   }
 
   bool NovatelGps::CreatePcapConnection(const std::string& device, NovatelMessageOpts const& opts)
@@ -1029,6 +1037,15 @@ namespace novatel_gps_driver
 
       // If we've successfully matched up two messages, remove them from their queues.
       inspva_queue_.pop();
+
+      auto gpsFix = boost::make_shared<gps_common::GPSFix>();
+
+      gpsFix->header.stamp = ros::Time::now();
+      gpsFix->altitude = inspva->height;
+      gpsFix->latitude = inspva->latitude;
+      gpsFix->longitude = inspva->longitude;
+
+      fix_msgs_.push_back(gpsFix);
 
       // Now we can combine them together to make an Imu message.
       sensor_msgs::ImuPtr imu = boost::make_shared<sensor_msgs::Imu>();
