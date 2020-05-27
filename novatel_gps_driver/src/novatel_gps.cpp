@@ -1007,6 +1007,75 @@ namespace novatel_gps_driver
     ROS_DEBUG("Created %lu new sensor_msgs/Imu messages.", new_size);
   }
 
+  void NovatelGps::GenerateImuMessages2()
+  {
+    if (imu_rate_ <= 0.0)
+    {
+      ROS_WARN_ONCE("IMU rate has not been configured; cannot produce sensor_msgs/Imu messages.");
+      return;
+    }
+
+    if (!latest_insstdev_ && !latest_inscov_)
+    {
+      // If we haven't received an INSSTDEV or an INSCOV message, don't do anything, just return.
+      ROS_WARN_THROTTLE(1.0, "No INSSTDEV or INSCOV data yet; orientation covariance will be unavailable.");
+    }
+
+    size_t previous_size = imu_msgs_.size();
+    // Only do anything if we have INSPVA messages.
+    while (!inspva_queue_.empty())
+    {
+      novatel_gps_msgs::InspvaPtr inspva = inspva_queue_.front();
+
+      // If we've successfully matched up two messages, remove them from their queues.
+      inspva_queue_.pop();
+
+      // Now we can combine them together to make an Imu message.
+      sensor_msgs::ImuPtr imu = boost::make_shared<sensor_msgs::Imu>();
+
+      imu->header.stamp = inspva->header.stamp;
+      imu->orientation = tf::createQuaternionMsgFromRollPitchYaw(inspva->roll * DEGREES_TO_RADIANS,
+                                              -(inspva->pitch) * DEGREES_TO_RADIANS,
+                                              -(inspva->azimuth) * DEGREES_TO_RADIANS);
+
+      if (latest_inscov_)
+      {
+        imu->orientation_covariance = latest_inscov_->attitude_covariance;
+      }
+      else if (latest_insstdev_)
+      {
+        imu->orientation_covariance[0] = std::pow(2, latest_insstdev_->pitch_dev);
+        imu->orientation_covariance[4] = std::pow(2, latest_insstdev_->roll_dev);
+        imu->orientation_covariance[8] = std::pow(2, latest_insstdev_->azimuth_dev);
+      }
+      else
+      {
+        imu->orientation_covariance[0] =
+        imu->orientation_covariance[4] =
+        imu->orientation_covariance[8] = 1e-3;
+      }
+
+      imu->angular_velocity.x =
+      imu->angular_velocity.y =
+      imu->angular_velocity.z = 1e-3;
+      imu->angular_velocity_covariance[0] =
+      imu->angular_velocity_covariance[4] =
+      imu->angular_velocity_covariance[8] = 1e-3;
+
+      imu->linear_acceleration.x =
+      imu->linear_acceleration.y =
+      imu->linear_acceleration.z = 1e-3;
+      imu->linear_acceleration_covariance[0] =
+      imu->linear_acceleration_covariance[4] =
+      imu->linear_acceleration_covariance[8] = 1e-3;
+
+      imu_msgs_.push_back(imu);
+    }
+
+    size_t new_size = imu_msgs_.size() - previous_size;
+    ROS_DEBUG("Created %lu new sensor_msgs/Imu messages.", new_size);
+  }
+
   void NovatelGps::SetImuRate(double imu_rate, bool imu_rate_forced)
   {
     ROS_INFO("IMU sample rate: %f", imu_rate);
@@ -1105,7 +1174,7 @@ namespace novatel_gps_driver
           ROS_WARN_THROTTLE(1.0, "INSPVA queue overflow.");
           inspva_queue_.pop();
         }
-        GenerateImuMessages();
+        GenerateImuMessages2();
         break;
       }
       case InspvaxParser::MESSAGE_ID:
@@ -1291,7 +1360,7 @@ namespace novatel_gps_driver
         ROS_WARN_THROTTLE(1.0, "INSPVA queue overflow.");
         inspva_queue_.pop();
       }
-      GenerateImuMessages();
+      GenerateImuMessages2();
     }
     else if (sentence.id == "INSPVAXA")
     {

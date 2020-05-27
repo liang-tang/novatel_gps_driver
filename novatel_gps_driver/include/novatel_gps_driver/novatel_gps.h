@@ -391,6 +391,12 @@ namespace novatel_gps_driver
       void GenerateImuMessages();
 
       /**
+       * @brief Processes any messages in our inspva queues in order to
+       * generate Imu messages from them.
+       */
+      void GenerateImuMessages2();
+
+      /**
        * @brief Converts a BinaryMessage object into a ROS message of the appropriate type
        * and places it in the appropriate buffer.
        * @param[in] msg A valid binary message
