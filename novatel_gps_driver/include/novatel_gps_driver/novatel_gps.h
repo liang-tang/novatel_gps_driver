@@ -292,9 +292,9 @@ namespace novatel_gps_driver
        * @param gps_ms Gps milliseconds
        * @return The unix epoch in milliseconds
        */
-      uint64_t TimeEpochConvert(uint16_t gps_week, uint32_t gps_ms)
+      uint64_t TimeEpochConvert(uint16_t gps_week, double gps_seconds)
       {
-          uint64_t fix_time_ms = UNIX_OFFSET_MSEC + gps_week * MSEC_PER_WEEK + gps_ms;
+          uint64_t fix_time_ms = UNIX_OFFSET_MSEC + gps_week * MSEC_PER_WEEK + gps_seconds * MSEC_PER_SEC;
           return fix_time_ms;
       }
 
