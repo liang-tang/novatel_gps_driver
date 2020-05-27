@@ -1038,9 +1038,12 @@ namespace novatel_gps_driver
       // If we've successfully matched up two messages, remove them from their queues.
       inspva_queue_.pop();
 
+      uint64_t time_ms = TimeEpochConvert(inspva->week, inspva->seconds);
+      ROS_WARN("inspva week %d seconds %f unix %ld.", inspva->week, inspva->seconds, time_ms);
       auto gpsFix = boost::make_shared<gps_common::GPSFix>();
 
-      gpsFix->header.stamp = ros::Time::now();
+      gpsFix->header.stamp.sec = time_ms / 1000;
+      gpsFix->header.stamp.nsec = (time_ms % 1000) * 1000000;
       gpsFix->altitude = inspva->height;
       gpsFix->latitude = inspva->latitude;
       gpsFix->longitude = inspva->longitude;
@@ -1050,7 +1053,7 @@ namespace novatel_gps_driver
       // Now we can combine them together to make an Imu message.
       sensor_msgs::ImuPtr imu = boost::make_shared<sensor_msgs::Imu>();
 
-      imu->header.stamp = inspva->header.stamp;
+      imu->header.stamp = gpsFix->header.stamp;
       imu->orientation = tf::createQuaternionMsgFromRollPitchYaw(inspva->roll * DEGREES_TO_RADIANS,
                                               -(inspva->pitch) * DEGREES_TO_RADIANS,
                                               -(inspva->azimuth) * DEGREES_TO_RADIANS);

@@ -287,6 +287,18 @@ namespace novatel_gps_driver
       void GetGPSFixMessages(std::vector<gps_common::GPSFixPtr>& gpsfix_messages);
 
       /**
+       * @brief Convert GPS week and milliseconds to unix epoch in milliseconds
+       * @param gps_week Gps week
+       * @param gps_ms Gps milliseconds
+       * @return The unix epoch in milliseconds
+       */
+      uint64_t TimeEpochConvert(uint16_t gps_week, uint32_t gps_ms)
+      {
+          uint64_t fix_time_ms = UNIX_OFFSET_MSEC + gps_week * MSEC_PER_WEEK + gps_ms;
+          return fix_time_ms;
+      }
+
+      /**
        * @return true if we are connected to a NovAtel device, false otherwise.
        */
       bool IsConnected() { return is_connected_; }
@@ -447,6 +459,13 @@ namespace novatel_gps_driver
       static constexpr uint32_t SECONDS_PER_WEEK = 604800;
       static constexpr double IMU_TOLERANCE_S = 0.0002;
       static constexpr double DEGREES_TO_RADIANS = M_PI / 180.0;
+
+      static constexpr uint64_t MSEC_PER_SEC = 1000ULL;
+      static constexpr uint64_t SEC_PER_WEEK = (7ULL * 86400ULL);
+      static constexpr uint64_t MSEC_PER_WEEK = (SEC_PER_WEEK * MSEC_PER_SEC);
+      // the number of GPS leap seconds
+      static constexpr uint64_t GPS_LEAPSECONDS_MILLIS = 18000ULL;
+      static constexpr uint64_t UNIX_OFFSET_MSEC = (17000ULL * 86400ULL + 52ULL * 10ULL * MSEC_PER_WEEK - GPS_LEAPSECONDS_MILLIS);
 
       ConnectionType connection_;
 
