@@ -277,7 +277,7 @@ namespace novatel_gps_driver
 
       std::string gps_topic = node.resolveName("gps");
       gps_pub_ = swri::advertise<gps_common::GPSFix>(node, gps_topic, 100);
-      fix_pub_ = swri::advertise<sensor_msgs::NavSatFix>(node, "fix", 100);
+      fix_pub_ = swri::advertise<sensor_msgs::NavSatFix>(node, "/gnss_inertial/navsatfix", 100);
 
       if (publish_clock_steering_)
       {
@@ -297,7 +297,7 @@ namespace novatel_gps_driver
 
       if (publish_imu_messages_)
       {
-        imu_pub_ = swri::advertise<sensor_msgs::Imu>(node, "imu", 100);
+        imu_pub_ = swri::advertise<sensor_msgs::Imu>(node, "/gnss_inertial/imu", 100);
         novatel_imu_pub_= swri::advertise<novatel_gps_msgs::NovatelCorrectedImuData>(node, "corrimudata", 100);
         insstdev_pub_ = swri::advertise<novatel_gps_msgs::Insstdev>(node, "insstdev", 100);
         inspva_pub_ = swri::advertise<novatel_gps_msgs::Inspva>(node, "inspva", 100);
